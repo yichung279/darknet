@@ -3,7 +3,9 @@
 #include "blas.h"
 #include "cuda.h"
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
+#include <string.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -234,6 +236,47 @@ image **load_alphabet()
         }
     }
     return alphabets;
+}
+
+void crop_detections(image im, detection *dets, int num, float thresh, char **names, image **alphabet, int classes, const char *out)
+{
+    int i,j;
+    int ncls[classes];
+    for (int i = 0; i < classes; ++i)
+        ncls[i] = 0;
+
+    for(i = 0; i < num; ++i){
+        for(j = 0; j < classes; ++j){
+            if (dets[i].prob[j] > thresh){
+                char *dir = "results/";
+                char ibox[3];
+                sprintf(ibox, "_%d", ncls[j]++);
+
+                char *file_path = malloc(strlen(dir) + strlen(out) + strlen(names[j]) + strlen(ibox) + 1);
+                strcpy(file_path, dir);
+                strcat(file_path, out);
+                strcat(file_path, names[j]);
+                strcat(file_path, ibox);
+
+                box b = dets[i].bbox;
+                printf("%s\t%.0f%%\tl:%.0f\tr:%.0f\tt:%.0f\tb:%.0f\n",
+                        names[j], dets[i].prob[j]*100,
+                        (b.x-b.w/2.)*im.w,
+                        (b.x+b.w/2.)*im.w,
+                        (b.y-b.h/2.)*im.h,
+                        (b.y+b.h/2.)*im.h
+                        );
+
+                int dx = (int)((b.x-b.w/2.)*im.w);
+                int dy = (int)((b.y-b.h/2.)*im.h);
+                int w = (int)(b.w*im.w);
+                int h = (int)(b.h*im.h);
+                /* printf("%d %d %d %d\n", dx, dy, w, h); */
+                image cim = crop_image(im, dx, dy, w, h);
+                save_image(cim, file_path);
+            }
+        }
+    }
 }
 
 void draw_detections(image im, detection *dets, int num, float thresh, char **names, image **alphabet, int classes)
