@@ -573,7 +573,10 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
     char buff[256];
     char *input = buff;
     float nms=.45;
+
+    // TODO: list all file in directory
     while(1){
+    // TODO: for file_name in directory
         if(filename){
             strncpy(input, filename, 256);
         } else {
@@ -583,6 +586,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
             if(!input) return;
             strtok(input, "\n");
         }
+        // TODO: input = file_name
         image im = load_image_color(input,0,0);
         image sized = letterbox_image(im, net->w, net->h);
         //image sized = resize_image(im, net->w, net->h);
@@ -602,6 +606,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         //if (nms) do_nms_obj(boxes, probs, l.w*l.h*l.n, l.classes, nms);
         if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
 
+        // TODO: crop_detections(..........., 'pre_fix')
         if(outfile){
             crop_detections(im, dets, nboxes, thresh, names, alphabet, l.classes, outfile);
         }else{
